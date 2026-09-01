@@ -1,0 +1,13 @@
+serial_driver_left:
+  ros__parameters:
+    port: "/dev/ttyACM0"
+    baudrate: 115200
+    device_name: "insole_left"
+    timer_period_ms: 2
+
+serial_driver_right:
+  ros__parameters:
+    port: "/dev/ttyACM1"
+    baudrate: 115200
+    device_name: "insole_right"
+    timer_period_ms: 2

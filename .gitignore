@@ -1,0 +1,16 @@
+# Diretórios de compilação e logs do ROS 2
+build/
+install/
+log/
+.colcon/
+
+# Backups e temporários
+src_backup/
+*.pyc
+__pycache__/
+.DS_Store
+
+# Binários e objetos compilados
+*.o
+*.so
+*.a
