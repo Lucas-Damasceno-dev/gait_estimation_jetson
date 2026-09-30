@@ -11,10 +11,10 @@ ParameterManager::ParameterManager(
 
 void ParameterManager::declare_parameters()
 {
-    node_->declare_parameter("usb_ports", std::vector<std::string>{"/dev/ttyACM0"});
+    node_->declare_parameter("usb_ports", std::vector<std::string>{"/dev/ttyACM0", "/dev/ttyACM1"});
     node_->declare_parameter("baudrate", 115200);
-    node_->declare_parameter("ids", std::vector<int64_t>{1});
-    node_->declare_parameter("names", std::vector<std::string>{"right_insole"});
+    node_->declare_parameter("ids", std::vector<int64_t>{1, 2});
+    node_->declare_parameter("names", std::vector<std::string>{"insole_left", "insole_right"});
     node_->declare_parameter("update_rate_ms", 15);
 }
 

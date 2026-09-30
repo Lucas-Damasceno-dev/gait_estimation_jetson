@@ -7,28 +7,40 @@
 #include <linux/i2c-dev.h>
 #include <cmath>
 
-#include <wiringPi.h>
-#include <wiringPiI2C.h>
-
 IMU::IMU(int32_t id, uint8_t address, int shared_fd)
 :  dev_(shared_fd), id_(id), address_(address) {}
 
+int IMU::write_reg(uint8_t reg, uint8_t val)
+{
+    if (dev_ < 0) return -1;
+    uint8_t buf[2] = {reg, val};
+    if (write(dev_, buf, 2) != 2) return -1;
+    return 0;
+}
+
+int IMU::read_reg(uint8_t reg)
+{
+    if (dev_ < 0) return -1;
+    if (write(dev_, &reg, 1) != 1) return -1;
+    uint8_t val = 0;
+    if (read(dev_, &val, 1) != 1) return -1;
+    return val;
+}
 
 int IMU::init_bno055()
 {
     // modo configuracao
-    if (wiringPiI2CWriteReg8(dev_, BNO055_OPR_MODE_ADDR, OPERATION_MODE_CONFIG) < 0)
+    if (write_reg(BNO055_OPR_MODE_ADDR, OPERATION_MODE_CONFIG) < 0)
         return -1;
     usleep(30 * 1000); // 30ms
 
-    // reset
-    // 0x20 -> comando reset
-    if (wiringPiI2CWriteReg8(dev_, BNO055_SYS_TRIGGER_ADDR, 0x20) < 0) 
+    // reset (0x20 -> comando reset)
+    if (write_reg(BNO055_SYS_TRIGGER_ADDR, 0x20) < 0) 
         return -1;
 
     // espera até o id do chip ser válido (reset termina)
     int retry = 0;
-    while (wiringPiI2CReadReg8(dev_, BNO055_CHIP_ID_ADDR) != BNO055_ID)
+    while (read_reg(BNO055_CHIP_ID_ADDR) != BNO055_ID)
     {
         usleep(10 * 1000); // 10ms
         if (++retry > 50) return -1; // Sai após 500ms se o sensor não responder
@@ -37,20 +49,20 @@ int IMU::init_bno055()
     usleep(50 * 1000); // 50ms
 
     // power mode normal
-    if (wiringPiI2CWriteReg8(dev_, BNO055_PWR_MODE_ADDR, POWER_MODE_NORMAL) < 0)
+    if (write_reg(BNO055_PWR_MODE_ADDR, POWER_MODE_NORMAL) < 0)
         return -1;
 
     // página 0
-    if (wiringPiI2CWriteReg8(dev_, BNO055_PAGE_ID_ADDR, 0) < 0)
+    if (write_reg(BNO055_PAGE_ID_ADDR, 0) < 0)
         return -1;
 
     // reset terminou
-    if (wiringPiI2CWriteReg8(dev_, BNO055_SYS_TRIGGER_ADDR, 0x00) < 0)
+    if (write_reg(BNO055_SYS_TRIGGER_ADDR, 0x00) < 0)
         return -1;
     usleep(10 * 1000);
 
-    // modo de operação NDOF
-    if (wiringPiI2CWriteReg8(dev_, BNO055_OPR_MODE_ADDR, OPERATION_MODE_NDOF) < 0)
+    // modo de operação NDOF (fusão 9-DOF nativa do sensor)
+    if (write_reg(BNO055_OPR_MODE_ADDR, OPERATION_MODE_NDOF) < 0)
         return -1;
     usleep(50 * 1000);
 
@@ -98,7 +110,7 @@ void IMU::read_euler(float euler[3])
     if (dev_ < 0) return;
 
     uint8_t reg = BNO055_EULER_H_LSB_ADDR;
-    uint8_t buf[6]; // 2 bytes para cada: roll, pitch e yaw
+    uint8_t buf[6]; // 2 bytes para cada: yaw, roll, pitch
 
     struct i2c_msg msgs[2];
     struct i2c_rdwr_ioctl_data msgset;
@@ -124,4 +136,3 @@ void IMU::read_euler(float euler[3])
     euler[1] = p / 16.0f; // pitch
     euler[2] = h / 16.0f; // yaw 
 }
-

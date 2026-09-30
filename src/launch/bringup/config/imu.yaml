@@ -1,8 +1,17 @@
 imu_node:
   ros__parameters:
-    # cada índice nos arrays corresponde a um imu
+    # Taxa de amostragem/publicação em ms
     update_rate_ms: 60
-    names: ["bottom", "middle", "top"]
-    ids: [1, 2, 3]
-    multiplexer: [0, 1, 0]
-    addresses: [40, 41, 40] 
+
+    # Configuração atual: 1 IMU conectada fisicamente (endereço 40 decimal = 0x28)
+    names: ["imu_bottom"]
+    ids: [1]
+    multiplexer: [0]
+    addresses: [40]
+
+    # Para usar as 2 IMUs quando a segunda estiver fisicamente conectada
+    # (no endereço 41 decimal = 0x29 com o pino COM3/AD0 em 3.3V no mesmo barramento I2C /dev/i2c-1):
+    # names: ["imu_bottom", "imu_top"]
+    # ids: [1, 2]
+    # multiplexer: [0, 0]
+    # addresses: [40, 41]

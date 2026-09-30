@@ -21,6 +21,7 @@ class InsoleDriver : public IPressureDriver
         bool sync_start_line();
 
         std::unique_ptr<SerialHandler> transport_;
+        std::string rx_buffer_;
 };
 
 #endif // INSOLE_DRIVER_HPP

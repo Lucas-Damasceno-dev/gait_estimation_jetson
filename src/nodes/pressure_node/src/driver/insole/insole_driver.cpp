@@ -23,11 +23,15 @@ std::vector<uint16_t> InsoleDriver::parse_numbers_from_string(
     const std::string& input)
 {
     std::vector<uint16_t> values;
-    std::stringstream ss(input);
+    std::string cleaned = input;
+    for (char& c : cleaned) {
+        if (c == ',' || c == ';' || c == '\t' || c == '\r') {
+            c = ' ';
+        }
+    }
+    std::stringstream ss(cleaned);
     std::string token;
 
-    // adiciona cada valor de uma string, separados por espaço
-    // em um array de números inteiros de 2 bytes
     while (ss >> token) {
         try {
             values.push_back(static_cast<uint16_t>(std::stoul(token)));
@@ -40,25 +44,26 @@ std::vector<uint16_t> InsoleDriver::parse_numbers_from_string(
 
 int InsoleDriver::get_data(std::vector<uint16_t>& data)
 {
-    static std::string rx_buffer;
     char tmp[256];
     ssize_t n;
 
-    // busca bloco de até 256 bytes de dados no buffer
+    // busca bloco de dados no buffer do canal específico
     while ((n = transport_->readData(tmp, sizeof(tmp))) > 0)
-        rx_buffer.append(tmp, n);
+        rx_buffer_.append(tmp, n);
 
     // encontra a última mensagem completa que estava no buffer
-    // ou seja, a mais recente
     std::string last_line;
     size_t pos;
-    while ((pos = rx_buffer.find('\n')) != std::string::npos)
+    while ((pos = rx_buffer_.find('\n')) != std::string::npos)
     {
-        last_line = rx_buffer.substr(0, pos);
-        rx_buffer.erase(0, pos + 1); // limpa o que já leu
+        last_line = rx_buffer_.substr(0, pos);
+        rx_buffer_.erase(0, pos + 1); // limpa o que já leu
     }
 
-    // se não pegou nada no buffer 
+    if (rx_buffer_.size() > 2048) {
+        rx_buffer_.clear();
+    }
+
     if (last_line.empty())
         return -1; 
 
