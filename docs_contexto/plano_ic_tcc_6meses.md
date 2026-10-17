@@ -67,10 +67,14 @@ flowchart LR
   - [x] Implementar `serial_driver_node` em C++ com suporte a múltiplas portas USB (`/dev/ttyACM0` e `/dev/ttyACM1`) e fallback ASCII.
   - [x] Implementar emulador `stm32_emulator_node` para testes de bancada e simulação offline.
   - [x] Criar arquivo de launch consolidado da Jetson (`jetson_bringup.launch.py`) integrando aquisição, sincronização e estimação.
+  - [x] Sincronização temporal de alta taxa orientada à palmilha (`use_fast_insole_sync = true` a ~1 kHz) com Zero-Order Hold das IMUs (~100 Hz).
+  - [x] Correção de multiplexação física binária dos pinos de seleção de endereço das IMUs (`00`, `01`, `10`, `11`).
 - [x] **Mês 3 - Visualização e CoppeliaSim**
   - [x] Implementar `visualization_node` em C++ (`rclcpp`) com ZeroMQ Publisher em tempo real.
   - [x] Publicar `sensor_msgs/msg/JointState` no tópico `/joint_states` para RViz2.
   - [x] Criar script/ponte cliente ZeroMQ (`coppeliasim_subscriber.py`) para renderizar a silhueta humana e a órtese no CoppeliaSim.
+  - [x] Desenvolver interface 3D completa no RViz2 (`sensor_visualizer_node`): mapa de calor plantar Jet, CoP dinâmico, eixos 3D de atitude e HUD de monitoramento de frequência em Hz e $\Delta t$.
+  - [x] Eliminação e saneamento completo do código legado (`system/`, `wiringpi`, backups), tornando a base 100% C++ nativa e autocontida.
 - [x] **Mês 4 - Motor de Inferência C++**
   - [x] Implementar extrator de características biomecânicas em tempo real (`gait_features.hpp`): razões de carga Heel/Midfoot/Forefoot, CoP longitudinal e velocidades angulares.
   - [x] Implementar classificadores de fases de marcha em C++ (`SVMGaitClassifier` e `RandomForestGaitClassifier`): *Heel Strike*, *Mid Stance*, *Toe Off*, *Swing*.
@@ -80,3 +84,4 @@ flowchart LR
   - [ ] Ensaios e cálculo de métricas de acurácia.
 - [ ] **Mês 6 - Finalização de Documentos**
   - [ ] Entrega da monografia e relatório.
+

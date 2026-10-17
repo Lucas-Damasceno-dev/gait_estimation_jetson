@@ -16,10 +16,17 @@ PressureNode::PressureNode(const rclcpp::NodeOptions& options)
 void PressureNode::init_driver() 
 {
     parameter_manager_ = std::make_shared<ParameterManager>(this);
-    pressure_drivers_.resize(parameter_manager_->get_ids().size());
+    size_t count = std::min(parameter_manager_->get_ids().size(), parameter_manager_->get_usb_ports().size());
+    pressure_drivers_.resize(count);
+
+    if (parameter_manager_->get_ids().size() != parameter_manager_->get_usb_ports().size()) {
+        RCLCPP_WARN(this->get_logger(),
+            "Divergência entre ids (%zu) e usb_ports (%zu). Usando as primeiras %zu portas.",
+            parameter_manager_->get_ids().size(), parameter_manager_->get_usb_ports().size(), count);
+    }
 
     // inicializa o sensor de cada porta declarada
-    for (size_t idx = 0; idx < parameter_manager_->get_ids().size(); idx++)
+    for (size_t idx = 0; idx < count; idx++)
     {
         pressure_drivers_[idx] = PressureFactory::create_pressure();
 
@@ -65,7 +72,7 @@ PressureState PressureNode::read_pressure_data(Time& time_data)
     const auto& ids = parameter_manager_->get_ids();
     const auto& names = parameter_manager_->get_names();
 
-    size_t min_size = std::min(ids.size(), names.size());
+    size_t min_size = std::min({pressure_drivers_.size(), ids.size(), names.size()});
 
     for (size_t idx = 0; idx < min_size; idx++)
     {

@@ -1,8 +1,0 @@
-imu_node:
-  ros__parameters:
-    # cada índice nos arrays corresponde a um imu
-    update_rate_ms: 60
-    names: ["bottom", "middle", "top"]
-    ids: [1, 2, 3]
-    multiplexer: [0, 1, 0]
-    addresses: [40, 41, 40] 

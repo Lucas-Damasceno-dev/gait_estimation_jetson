@@ -20,8 +20,8 @@ public:
     ~BNO055IMU() = default;
 
     void setup();
-    void get_euler_data(std::vector<float>& out_data);
-    void get_quaternions_data(std::vector<float>& out_data);
+    bool get_euler_data(std::vector<float>& out_data);
+    bool get_quaternions_data(std::vector<float>& out_data);
     void calibrate_euler();
     void calibrate_quaternions();
   

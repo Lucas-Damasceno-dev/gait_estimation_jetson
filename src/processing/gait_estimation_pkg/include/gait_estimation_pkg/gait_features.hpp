@@ -49,6 +49,15 @@ inline GaitFeatureVector extract_gait_features(
 
     constexpr float V_MAX = 4095.0f; // Fundo de escala ADC 12 bits
 
+    // Posições longitudinais reais normalizadas (0.0 = Calcanhar posterior, 1.0 = Ponta dos dedos)
+    // Mapeamento anatômico Legact FS-INS-16Z (sensores aos pares na mesma linha transversal)
+    static constexpr float SENSOR_Y_NORM[16] = {
+        0.0000f, 0.0000f, 0.1471f, 0.1471f, // 0..3: Calcanhar
+        0.3235f, 0.3235f, 0.5000f, 0.5000f, // 4..7: Mediopé
+        0.6765f, 0.6765f, 0.6765f, 0.6765f, // 8..11: Metatarso / Antepé
+        0.8529f, 0.8529f, 0.8529f, 1.0000f  // 12..15: Falanges / Halux
+    };
+
     for (size_t i = 0; i < 16 && i < raw_pressure.size(); ++i) {
         float norm_val = std::min(std::max(static_cast<float>(raw_pressure[i]) / V_MAX, 0.0f), 1.0f);
         feat.pressure_normalized[i] = norm_val;
@@ -62,8 +71,8 @@ inline GaitFeatureVector extract_gait_features(
         else if (i < 8) sum_midfoot += norm_val;
         else sum_forefoot += norm_val;
 
-        // Ponderação do Centro de Pressão (CoP longitudinal y de 0 a 1)
-        float y_pos = static_cast<float>(i) / 15.0f;
+        // Ponderação do Centro de Pressão longitudinal baseado na anatomia real
+        float y_pos = (i < 16) ? SENSOR_Y_NORM[i] : 0.5f;
         weighted_y += norm_val * y_pos;
     }
 

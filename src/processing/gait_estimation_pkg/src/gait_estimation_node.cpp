@@ -53,9 +53,13 @@ private:
       double sinp = 2.0 * (imu.q_w * imu.q_y - imu.q_z * imu.q_x);
       float pitch = static_cast<float>((std::abs(sinp) >= 1.0) ? std::copysign(M_PI / 2.0, sinp) : std::asin(sinp));
 
-      if (imu.name == "imu_thigh" || imu.name == "imu_1") pitch_thigh = pitch;
-      else if (imu.name == "imu_shank" || imu.name == "imu_2") pitch_shank = pitch;
-      else if (imu.name == "imu_foot" || imu.name == "imu_3") pitch_foot = pitch;
+      if (imu.name == "imu_thigh" || imu.name == "imu_1" || imu.name == "top" || imu.name == "imu_top") {
+        pitch_thigh = pitch;
+      } else if (imu.name == "imu_shank" || imu.name == "imu_2" || imu.name == "middle" || imu.name == "imu_middle") {
+        pitch_shank = pitch;
+      } else if (imu.name == "imu_foot" || imu.name == "imu_3" || imu.name == "bottom" || imu.name == "imu_bottom") {
+        pitch_foot = pitch;
+      }
     }
 
     // 2. Extração de pressão plantar (16 canais da primeira palmilha disponível)

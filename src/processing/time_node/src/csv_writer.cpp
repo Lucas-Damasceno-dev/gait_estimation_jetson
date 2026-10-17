@@ -6,6 +6,32 @@ void CsvWriter::add_row(const CsvRow& row)
     rows_.push_back(row);
 }
 
+void CsvWriter::append_row(const std::string& filename, const CsvRow& row, const std::vector<std::string>& header)
+{
+    bool file_exists = false;
+    {
+        std::ifstream check(filename);
+        file_exists = check.good();
+    }
+
+    std::ofstream file(filename, std::ios::app);
+    if (!file.is_open()) return;
+
+    if (!file_exists && !header.empty()) {
+        for (size_t i = 0; i < header.size(); i++) {
+            file << header[i];
+            if (i + 1 < header.size()) file << ",";
+        }
+        file << "\n";
+    }
+
+    for (size_t i = 0; i < row.values.size(); i++) {
+        file << row.values[i];
+        if (i + 1 < row.values.size()) file << ",";
+    }
+    file << "\n";
+}
+
 void CsvWriter::clear()
 {
     rows_.clear();

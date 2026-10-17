@@ -40,22 +40,25 @@ std::vector<uint16_t> PressureDriver::parse_numbers_from_string(
 
 int PressureDriver::get_data(std::vector<uint16_t>& data)
 {
-    static std::string rx_buffer;
     char tmp[256];
     ssize_t n;
 
     // busca bloco de até 256 bytes de dados no buffer
     while ((n = transport_->readData(tmp, sizeof(tmp))) > 0)
-        rx_buffer.append(tmp, n);
+        rx_buffer_.append(tmp, n);
 
     // encontra a última mensagem completa que estava no buffer
     // ou seja, a mais recente
     std::string last_line;
     size_t pos;
-    while ((pos = rx_buffer.find('\n')) != std::string::npos)
+    while ((pos = rx_buffer_.find('\n')) != std::string::npos)
     {
-        last_line = rx_buffer.substr(0, pos);
-        rx_buffer.erase(0, pos + 1); // limpa o que já leu
+        last_line = rx_buffer_.substr(0, pos);
+        rx_buffer_.erase(0, pos + 1); // limpa o que já leu
+    }
+
+    if (rx_buffer_.size() > 2048) {
+        rx_buffer_.clear();
     }
 
     // se não pegou nada no buffer 

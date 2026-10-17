@@ -21,6 +21,7 @@ class PressureDriver : public IPressureDriver
         bool sync_start_line();
 
         std::unique_ptr<SerialHandler> transport_;
+        std::string rx_buffer_;
 };
 
 #endif // PRESSURE_DRIVER_HPP

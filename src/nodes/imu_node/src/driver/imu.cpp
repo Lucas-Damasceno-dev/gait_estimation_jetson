@@ -69,9 +69,9 @@ int IMU::init_bno055()
     return 0;
 }
 
-void IMU::read_quaternions(float quaternion[4])
+int IMU::read_quaternions(float quaternion[4])
 {
-    if (dev_ < 0) return;
+    if (dev_ < 0) return -1;
 
     uint8_t reg = BNO055_QUATERNION_DATA_W_LSB_ADDR;
     uint8_t buf[8];
@@ -96,18 +96,19 @@ void IMU::read_quaternions(float quaternion[4])
     msgset.nmsgs = 2; // 2 operações sequenciais
 
     if (ioctl(dev_, I2C_RDWR, &msgset) < 0) {
-        return; 
+        return -1; 
     }
 
     quaternion[0] = (float)((int16_t)(buf[0] | (buf[1] << 8))) / 16384.0f;
     quaternion[1] = (float)((int16_t)(buf[2] | (buf[3] << 8))) / 16384.0f;
     quaternion[2] = (float)((int16_t)(buf[4] | (buf[5] << 8))) / 16384.0f;
     quaternion[3] = (float)((int16_t)(buf[6] | (buf[7] << 8))) / 16384.0f;
+    return 0;
 }
 
-void IMU::read_euler(float euler[3])
+int IMU::read_euler(float euler[3])
 {
-    if (dev_ < 0) return;
+    if (dev_ < 0) return -1;
 
     uint8_t reg = BNO055_EULER_H_LSB_ADDR;
     uint8_t buf[6]; // 2 bytes para cada: yaw, roll, pitch
@@ -126,7 +127,7 @@ void IMU::read_euler(float euler[3])
     msgs[1].buf = buf;
     msgset.msgs = msgs; msgset.nmsgs = 2;
 
-    if (ioctl(dev_, I2C_RDWR, &msgset) < 0) return;
+    if (ioctl(dev_, I2C_RDWR, &msgset) < 0) return -1;
 
     int16_t h = (int16_t)(buf[0] | (buf[1] << 8)); // yaw
     int16_t r = (int16_t)(buf[2] | (buf[3] << 8)); // roll
@@ -135,4 +136,5 @@ void IMU::read_euler(float euler[3])
     euler[0] = r / 16.0f; // roll
     euler[1] = p / 16.0f; // pitch
     euler[2] = h / 16.0f; // yaw 
+    return 0;
 }

@@ -13,6 +13,8 @@ find_package(rclcpp REQUIRED)
 find_package(interfaces REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(ZMQ REQUIRED libzmq)
 
@@ -40,9 +42,21 @@ ament_target_dependencies(visualization_node
 )
 target_link_libraries(visualization_node ${ZMQ_LIBRARIES})
 
+# Sensor RViz Visualizer Node (Palmilhas e IMUs com monitoramento em Hz)
+add_executable(sensor_visualizer_node src/sensor_visualizer_node.cpp)
+ament_target_dependencies(sensor_visualizer_node
+  rclcpp
+  interfaces
+  sensor_msgs
+  std_msgs
+  visualization_msgs
+  geometry_msgs
+)
+
 install(TARGETS
   gait_estimation_node
   visualization_node
+  sensor_visualizer_node
   DESTINATION lib/${PROJECT_NAME}
 )
 

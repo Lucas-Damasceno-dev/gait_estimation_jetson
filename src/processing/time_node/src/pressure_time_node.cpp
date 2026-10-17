@@ -27,14 +27,15 @@ void PressureTimeNode::time_callback(const interfaces::msg::Time::SharedPtr msg)
     // tempo esperado (update_rate)
     // TODO: enviar pela msg
     //plotter_.add_data("pressure_update_rate", msg_counter_, static_cast<double>(15000.0)); // 15ms
-    plotter_.plot();
+    if (msg_counter_ % 10 == 0) {
+        plotter_.plot();
+    }
 
     // --- CSV ---
     CsvRow row;
     for (double t : msg->times)
         row.values.push_back(static_cast<double>(t));
     row.values.push_back(static_cast<double>(msg->total_time)); // última coluna = total
-    csv_writer_.add_row(row);
 
     // cabeçalho dinâmico
     std::vector<std::string> header;
@@ -42,7 +43,7 @@ void PressureTimeNode::time_callback(const interfaces::msg::Time::SharedPtr msg)
         header.push_back(msg->names[idx]);
     header.push_back("TotalTime");
 
-    csv_writer_.save("pressure_times.csv", header);
+    csv_writer_.append_row("pressure_times.csv", row, header);
 
     msg_counter_++;
 }

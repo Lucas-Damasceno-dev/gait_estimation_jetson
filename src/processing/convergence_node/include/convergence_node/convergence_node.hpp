@@ -19,7 +19,8 @@ class ConvergenceNode : public rclcpp::Node
         CsvWriter csv_writer_;
         Plotter plotter_;
 
-        uint64_t start_time_ms_ = 0;
+        double start_time_s_ = 0.0;
+        uint64_t msg_counter_{0};
 };
 
 #endif //CONVERGENCE_NODE_HPP

@@ -2,6 +2,7 @@
 #include "common_serial/serial_handler.hpp"
 
 #include <chrono>
+#include <thread>
 #include <cstring>
 #include "rclcpp/rclcpp.hpp"
 
@@ -28,28 +29,28 @@ int MG8008EDriver::setup_driver(int id)
 		return -1;
 	if (read_status(id, status) < 0)
 		return -1;
-	std::chrono::milliseconds(20);
+	std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
     packet = {0x3E, 0x12, (uint8_t)id, 0x00, (uint8_t)(0x3E + 0x12 + id + 0x00)};
 	if (transport_->writeData(packet.data(), packet.size()) < 0)
 		return -1;
 	if (read_status(id, status) < 0)
 		return -1;
-	std::chrono::milliseconds(20);
+	std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
 	packet = {0x3E, 0x16, (uint8_t)id, 0x00, (uint8_t)(0x3E + 0x16 + id + 0x00)};
 	if (transport_->writeData(packet.data(), packet.size()) < 0)
 		return -1;
 	if (read_status(id, status) < 0)
 		return -1;
-	std::chrono::milliseconds(20);
+	std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
 	packet = {0x3E, 0x14, (uint8_t)id, 0x00, (uint8_t)(0x3E + 0x14 + id + 0x00)};
 	if (transport_->writeData(packet.data(), packet.size()) < 0)
 		return -1;
 	if (read_status(id, status) < 0)
 		return -1;
-	std::chrono::milliseconds(20);
+	std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
 	packet = {0x3E, 0x10, (uint8_t)id, 0x00, (uint8_t)(0x3E + 0x10 + id + 0x00)};
 	if (transport_->writeData(packet.data(), packet.size()) < 0)
@@ -120,6 +121,9 @@ int MG8008EDriver::get_angle(uint8_t id, double& angle)
     StatusPacket status;
     if (read_status(id, status) < 0)
         return -1;
+
+    if (status.length < sizeof(int64_t))
+        return -2;
 
 	// converte hexadecimal em posição
 	int64_t angle_raw = 0;

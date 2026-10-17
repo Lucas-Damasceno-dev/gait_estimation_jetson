@@ -6,6 +6,9 @@ using std::placeholders::_3;
 
 SyncNode::SyncNode() : Node("sync_node")
 {
+    this->declare_parameter<bool>("use_fast_insole_sync", true);
+    use_fast_insole_sync_ = this->get_parameter("use_fast_insole_sync").as_bool();
+
     auto qos = rclcpp::QoS(rclcpp::KeepLast(10)).best_effort();
 
     publisher_ = this->create_publisher<SyncedSensorData>("/sync/data", qos);
@@ -18,28 +21,58 @@ SyncNode::SyncNode() : Node("sync_node")
         last_imu_time_ = this->now(); 
         last_imu_msg_ = msg;
     });
+
     pressure_sub_.registerCallback([this](const PressureState::ConstSharedPtr& msg) { 
         last_pressure_time_ = this->now(); 
         last_pressure_msg_ = msg;
+
+        // Modo Rápido (1 kHz): Palmilha dispara a sincronização mantendo a última IMU (Zero-Order Hold)
+        if (use_fast_insole_sync_) {
+            auto synced_msg = std::make_unique<SyncedSensorData>();
+            synced_msg->header.stamp = (msg->header.stamp.sec != 0 || msg->header.stamp.nanosec != 0) 
+                                       ? msg->header.stamp : this->now();
+            synced_msg->pressure_data = *msg;
+
+            if (last_imu_msg_) {
+                synced_msg->imu_data = *last_imu_msg_;
+            } else {
+                synced_msg->imu_data.header.stamp = synced_msg->header.stamp;
+                synced_msg->imu_data.header.frame_id = "waiting_imu";
+            }
+
+            if (last_actuator_msg_) {
+                synced_msg->actuator_data = *last_actuator_msg_;
+            }
+
+            publisher_->publish(std::move(synced_msg));
+        }
     });
+
     actuator_sub_.registerCallback([this](const MG8008EState::ConstSharedPtr& msg) { 
         last_actuator_time_ = this->now(); 
         last_actuator_msg_ = msg;
     });
 
-    sync_ = std::make_shared<message_filters::Synchronizer<SyncPolicy>>(
-        SyncPolicy(10), imu_sub_, pressure_sub_, actuator_sub_);
-
-    sync_->registerCallback(std::bind(&SyncNode::synced_callback, this, _1, _2, _3));
+    if (!use_fast_insole_sync_) {
+        sync_ = std::make_shared<message_filters::Synchronizer<SyncPolicy>>(
+            SyncPolicy(10), imu_sub_, pressure_sub_, actuator_sub_);
+        sync_->registerCallback(std::bind(&SyncNode::synced_callback, this, _1, _2, _3));
+    }
 
     watchdog_timer_ = this->create_wall_timer(
         std::chrono::milliseconds(50), std::bind(&SyncNode::watchdog_callback, this));
 
-    RCLCPP_INFO(this->get_logger(), "SyncNode inicializado com cache de dados.");
+    RCLCPP_INFO(this->get_logger(), 
+        "SyncNode inicializado. Modo 1 kHz Palmilha (Zero-Order Hold IMU): %s",
+        use_fast_insole_sync_ ? "ATIVADO [1 kHz]" : "DESATIVADO [ApproximateTime]");
 }
 
 void SyncNode::watchdog_callback()
 {
+    if (use_fast_insole_sync_ || !sync_) {
+        return;
+    }
+
     auto now = this->now();
 
     // verifica se nenhum sensor está publicando

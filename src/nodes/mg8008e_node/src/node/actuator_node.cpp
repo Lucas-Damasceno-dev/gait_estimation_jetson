@@ -149,11 +149,11 @@ void ActuatorNode::set_angle(const std::vector<ActuatorData>& actuator_data)
 }
 
 std::vector<ActuatorData> ActuatorNode::read_angle_msg(const MG8008ECommand::SharedPtr msg) {
-    if (msg->names.empty() || msg->angles.empty()) return {};
+    if (msg->names.empty() || msg->angles.empty() || msg->speeds.empty()) return {};
 
     std::vector<ActuatorData> actuator_data_list;
 
-    size_t n = std::min(msg->names.size(), msg->angles.size()); 
+    size_t n = std::min({msg->names.size(), msg->angles.size(), msg->speeds.size()});
     for (size_t idx = 0; idx < n; idx++)
     {
         auto id = parameter_manager_->get_id_by_name(msg->names[idx]);

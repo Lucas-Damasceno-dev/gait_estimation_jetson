@@ -58,9 +58,9 @@ class IMU
         int get_fd() const { return dev_; }
         uint8_t get_address() const { return address_; }
         int init_bno055();
-        void read_quaternions(float quaternion[4]);
-        void read_quaternions_euler(float euler[3]);
-        void read_euler(float euler[3]);
+        int read_quaternions(float quaternion[4]);
+        int read_quaternions_euler(float euler[3]);
+        int read_euler(float euler[3]);
 
         int write_reg(uint8_t reg, uint8_t val);
         int read_reg(uint8_t reg);

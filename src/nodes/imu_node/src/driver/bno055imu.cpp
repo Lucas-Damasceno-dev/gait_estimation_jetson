@@ -61,19 +61,33 @@ void BNO055IMU::setup() {
     }
 }
 
-void BNO055IMU::get_euler_data(std::vector<float>& out_data) {
+bool BNO055IMU::get_euler_data(std::vector<float>& out_data) {
     out_data.resize(3);
-    bno_.read_euler(out_data.data());
+    if (bno_.read_euler(out_data.data()) != 0) {
+        out_data.clear();
+        return false;
+    }
 
     // calibrando com referência relativa
     out_data[0] = out_data[0] - calibration_ref_[0]; // yaw
     out_data[1] = out_data[1] - calibration_ref_[1]; // pitch
     out_data[2] = out_data[2] - calibration_ref_[2]; // roll
+    return true;
 }
 
-void BNO055IMU::get_quaternions_data(std::vector<float>& out_data) {
+bool BNO055IMU::get_quaternions_data(std::vector<float>& out_data) {
     out_data.resize(4);
-    bno_.read_quaternions(out_data.data());
+    if (bno_.read_quaternions(out_data.data()) != 0) {
+        out_data.clear();
+        return false;
+    }
+
+    float norm_sq = out_data[0]*out_data[0] + out_data[1]*out_data[1] +
+                    out_data[2]*out_data[2] + out_data[3]*out_data[3];
+    if (norm_sq < 0.2f || norm_sq > 2.0f) {
+        out_data.clear();
+        return false;
+    }
 
     float rw =  calibration_ref_quaternions_[0];
     float rx = -calibration_ref_quaternions_[1];
@@ -90,6 +104,7 @@ void BNO055IMU::get_quaternions_data(std::vector<float>& out_data) {
     out_data[1] = rw*cx + rx*cw + ry*cz - rz*cy; // x
     out_data[2] = rw*cy - rx*cz + ry*cw + rz*cx; // y
     out_data[3] = rw*cz + rx*cy - ry*cx + rz*cw; // z
+    return true;
 }
 
 void BNO055IMU::calibrate_euler() {

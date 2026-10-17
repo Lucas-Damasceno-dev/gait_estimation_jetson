@@ -57,6 +57,8 @@ private:
     // limite de tempo pra considerar que um sensor
     // parou de enviar dados
     const rclcpp::Duration timeout_threshold_ = rclcpp::Duration::from_seconds(0.2);
+
+    bool use_fast_insole_sync_{true};
 };
 
 #endif // SYNC_NODE_HPP

@@ -22,11 +22,13 @@ public:
     this->declare_parameter<int>("baudrate", 115200);
     this->declare_parameter<std::string>("device_name", "left_insole");
     this->declare_parameter<int>("timer_period_ms", 2); // Leitura em ~500Hz
+    this->declare_parameter<bool>("binary_protocol", true);
 
     port_ = this->get_parameter("port").as_string();
     baudrate_ = this->get_parameter("baudrate").as_int();
     device_name_ = this->get_parameter("device_name").as_string();
     int timer_ms = this->get_parameter("timer_period_ms").as_int();
+    binary_protocol_ = this->get_parameter("binary_protocol").as_bool();
 
     // Configura QoS de alto desempenho
     auto qos = rclcpp::QoS(rclcpp::KeepLast(10)).best_effort().durability_volatile();
@@ -64,11 +66,14 @@ private:
 
     rx_buffer_.insert(rx_buffer_.end(), buffer, buffer + bytes_read);
 
-    // 1. Tenta processar pacotes binários estruturados
-    process_binary_frames();
-
-    // 2. Fallback para strings ASCII (caso o STM32 esteja enviando dados legados formatados em texto)
-    process_ascii_lines();
+    // Processa conforme o modo configurado
+    if (binary_protocol_) {
+      // 1. Processa pacotes binários estruturados
+      process_binary_frames();
+    } else {
+      // 2. Modo ASCII: strings de texto
+      process_ascii_lines();
+    }
 
     // Previne overflow do buffer em caso de ruído excessivo
     if (rx_buffer_.size() > 2048) {
@@ -101,8 +106,8 @@ private:
           rx_buffer_.erase(rx_buffer_.begin());
         }
       } else {
-        // Não é SOF: procura o próximo byte
-        break;
+        // Não é SOF: descarta o primeiro byte para buscar o cabeçalho no próximo
+        rx_buffer_.erase(rx_buffer_.begin());
       }
     }
   }
@@ -201,6 +206,7 @@ private:
   std::string port_;
   int baudrate_;
   std::string device_name_;
+  bool binary_protocol_{true};
   std::vector<uint8_t> rx_buffer_;
 
   std::unique_ptr<SerialHandler> serial_;

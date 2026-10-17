@@ -52,12 +52,12 @@ class MG8008EDriver : public IActuatorDriver
     private:
         struct StatusPacket
         {
-            uint8_t id;
-            uint8_t command;
-            uint8_t length;
-            uint8_t frame_type;
-            uint8_t error;
-            std::array<uint8_t, RXPACKET_MAX_LEN> params;
+            uint8_t id{0};
+            uint8_t command{0};
+            uint8_t length{0};
+            uint8_t frame_type{0};
+            uint8_t error{0};
+            std::array<uint8_t, RXPACKET_MAX_LEN> params{};
         };
 
         std::vector<uint8_t> get_packet(

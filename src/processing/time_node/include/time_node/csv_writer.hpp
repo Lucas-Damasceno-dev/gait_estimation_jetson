@@ -13,6 +13,7 @@ class CsvWriter
 public:
     CsvWriter() = default;
     void add_row(const CsvRow& row);
+    void append_row(const std::string& filename, const CsvRow& row, const std::vector<std::string>& header = {});
     void save(const std::string& filename, const std::vector<std::string>& header = {}) const;
     void clear();
 

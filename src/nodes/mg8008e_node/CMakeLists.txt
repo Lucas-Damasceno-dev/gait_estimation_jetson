@@ -39,27 +39,31 @@ ament_target_dependencies(actuator_control
   rclcpp
 )
 
-add_library(actuator_node_lib SHARED
+add_library(mg8008e_node_lib SHARED
   src/node/actuator_node.cpp
 )
 
-target_link_libraries(actuator_node_lib
+target_link_libraries(mg8008e_node_lib
   actuator_driver
   actuator_control
 )
 
-ament_target_dependencies(actuator_node_lib
+ament_target_dependencies(mg8008e_node_lib
   rclcpp
   interfaces
   common_serial
 )
 
+add_executable(mg8008e_node src/main.cpp)
+target_link_libraries(mg8008e_node mg8008e_node_lib)
+
 add_executable(actuator_node src/main.cpp)
-target_link_libraries(actuator_node actuator_node_lib)
+target_link_libraries(actuator_node mg8008e_node_lib)
 
 install(TARGETS
+  mg8008e_node
   actuator_node
-  actuator_node_lib
+  mg8008e_node_lib
   DESTINATION lib/${PROJECT_NAME}
 )
 
