@@ -4,8 +4,10 @@
 # Plataforma: Nvidia Jetson Nano / Host PC com ROS 2 Humble
 # ==============================================================================
 
-if [ -f "/ros_entrypoint.sh" ]; then
-    source /ros_entrypoint.sh
+if [ -f "/opt/ros/humble/install/setup.bash" ]; then
+    source /opt/ros/humble/install/setup.bash
+elif [ -f "/ros_entrypoint.sh" ]; then
+    source /ros_entrypoint.sh true >/dev/null 2>&1
 fi
 
 if [ -f "/ros2_ws/install/setup.bash" ]; then
@@ -25,5 +27,9 @@ echo "   • Visualização 3D: /sensor_monitor/markers"
 echo "   • Taxas em Hz    : /sensor_monitor/pressure_hz e /imu_hz"
 echo "=========================================================="
 
-# Passa argumentos extras para o launch (ex: start_sensors:=true)
-exec ros2 launch bringup rviz_sensors.launch.py "$@"
+# Se nenhum argumento for passado, inicia automaticamente com os sensores ativos (start_sensors:=true)
+if [ $# -eq 0 ]; then
+    exec ros2 launch bringup rviz_sensors.launch.py start_sensors:=true
+else
+    exec ros2 launch bringup rviz_sensors.launch.py "$@"
+fi
